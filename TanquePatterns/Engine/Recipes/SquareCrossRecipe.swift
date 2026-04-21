@@ -12,10 +12,10 @@ struct SquareCrossRecipe: MotifRecipe {
 
         // Two opposite edge pairs: (0,2) and (1,3)
         for (ei, ej) in [(0, 2), (1, 3)] {
-            let a = lerp(v[ei],         v[(ei + 1) % 4], contactT)
-            let b = lerp(v[(ei + 1) % 4], v[ei],         contactT)
-            let c = lerp(v[ej],         v[(ej + 1) % 4], contactT)
-            let d = lerp(v[(ej + 1) % 4], v[ej],         contactT)
+            let a = lerp(v[ei],           v[(ei + 1) % 4], t: contactT)
+            let b = lerp(v[(ei + 1) % 4], v[ei],           t: contactT)
+            let c = lerp(v[ej],           v[(ej + 1) % 4], t: contactT)
+            let d = lerp(v[(ej + 1) % 4], v[ej],           t: contactT)
 
             // Diagonal cross: a→d and b→c
             let x1 = lineIntersect(a, d, b, c) ?? centroid(v)
