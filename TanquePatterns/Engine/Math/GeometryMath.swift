@@ -47,16 +47,16 @@ func brougArms(poly: [Vec2], contactT: Double) -> [ArmPoints] {
 
     return (0..<n).map { i in
         // end contact of edge (i-1), near poly[i]
-        let outerA = lerp(poly[i], poly[(i - 1 + n) % n], contactT)
+        let outerA = lerp(poly[i], poly[(i - 1 + n) % n], t: contactT)
         // start contact of edge i, near poly[i]
-        let outerB = lerp(poly[i], poly[(i + 1) % n], contactT)
+        let outerB = lerp(poly[i], poly[(i + 1) % n], t: contactT)
 
         // Chord partners: connect each contact across the polygon (opposite edge)
         let oppA = (i - 1 + half + n) % n
-        let partnerA = lerp(poly[oppA], poly[(oppA + 1) % n], contactT)
+        let partnerA = lerp(poly[oppA], poly[(oppA + 1) % n], t: contactT)
 
         let oppB = (i + half) % n
-        let partnerB = lerp(poly[(oppB + 1) % n], poly[oppB], contactT)
+        let partnerB = lerp(poly[(oppB + 1) % n], poly[oppB], t: contactT)
 
         let inner = lineIntersect(outerA, partnerA, outerB, partnerB)
             ?? centroid(poly)
