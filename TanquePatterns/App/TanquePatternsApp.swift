@@ -1,11 +1,5 @@
-//
-//  TanquePatternsApp.swift
-//  TanquePatterns
-//
-//  Created by skeptict on 4/21/26.
-//
-
 import SwiftUI
+import SwiftData
 
 @main
 struct TanquePatternsApp: App {
@@ -13,5 +7,6 @@ struct TanquePatternsApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: PatternDocument.self)
     }
 }
