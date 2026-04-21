@@ -25,9 +25,9 @@ struct PatternRenderer {
 
         let gridPaths = cells.map { cell -> CGPath in
             let p = CGMutablePath()
-            guard let first = cell.vertices.first else { return p }
+            guard let first = cell.cell.vertices.first else { return p }
             p.move(to: CGPoint(first))
-            cell.vertices.dropFirst().forEach { p.addLine(to: CGPoint($0)) }
+            cell.cell.vertices.dropFirst().forEach { p.addLine(to: CGPoint($0)) }
             p.closeSubpath()
             return p as CGPath
         }
