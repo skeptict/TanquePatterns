@@ -8,5 +8,8 @@ struct TanquePatternsApp: App {
             ContentView()
         }
         .modelContainer(for: PatternDocument.self)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 960, height: 680)
+        .windowResizability(.contentSize)
     }
 }

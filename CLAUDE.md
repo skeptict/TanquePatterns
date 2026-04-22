@@ -6,11 +6,33 @@ Before touching any file, declare:
 - Every file you will MODIFY (with what changes)
 Wait for confirmation before proceeding.
 
+## Self-verification
+After every meaningful change, run this build command and fix all errors before proceeding:
+
+```bash
+xcodebuild \
+  -project /Users/skeptict/Documents/GitHub/TanquePatterns/TanquePatterns/TanquePatterns.xcodeproj \
+  -scheme TanquePatterns \
+  -destination 'platform=macOS' \
+  build 2>&1 | grep -E "error:|warning:|BUILD"
+```
+
+Run tests with:
+```bash
+xcodebuild \
+  -project /Users/skeptict/Documents/GitHub/TanquePatterns/TanquePatterns/TanquePatterns.xcodeproj \
+  -scheme TanquePatterns \
+  -destination 'platform=macOS' \
+  test 2>&1 | grep -E "error:|warning:|FAILED|passed|failed|BUILD"
+```
+
+Only report back when `BUILD SUCCEEDED` with zero errors.
+
 ## Hard Stops
 - No AppKit/UIKit/SwiftUI imports inside Engine/ — pure Swift only
 - No merge to main without explicit instruction
 - No separate iOS target — single binary, macOS 14 minimum
-- No GeometryReader (performance: use Canvas + PreferenceKey pattern instead)
+- No GeometryReader in the engine layer (Canvas + size parameter is fine in Views)
 
 ## Architecture
 - MVVM, @MainActor ViewModels
@@ -23,6 +45,8 @@ Wait for confirmation before proceeding.
 - regPoly phase: hexagons use phase=0 (flat-top), not -π/2
 - SIMD2<Double> throughout engine; convert to CGFloat only at CGPath boundary
 - WeaveSolver strand grouping: use 0.5pt tolerance for shared endpoint detection
+- Canvas coordinate system: top-left origin; center pattern via offsetX/offsetY translation
+- CGPath stroking: use context.stroke(Path(cgPath), ...) not context.draw on CGPath directly
 
 ## Completion Protocol
 After every session, report:
@@ -33,9 +57,14 @@ After every session, report:
 5. Update Open Brain via Tanque Open Brain MCP
 
 ## Key files
-- Engine/Math/GeometryMath.swift — all vector primitives
+- Engine/Math/GeometryMath.swift — all vector primitives + brougArms
 - Engine/Generators/GridGenerator.swift — four grid families
+- Engine/Generators/MotifRecipeResolver.swift — applies armExtension (spacing * 0.15)
 - Engine/Recipes/ — MotifRecipe protocol + three conformers
 - Engine/Weave/WeaveSolver.swift — over/under crossing solver
+- Engine/Rendering/PatternRenderer.swift — CGPath output
 - Model/PatternDocumentState.swift — Codable working copy (ViewModel owns this)
 - Model/PatternDocument.swift — SwiftData @Model (thin identity + JSON blob)
+- ViewModel/PatternViewModel.swift — recompute() runs engine on detached Task
+- Views/PatternCanvas.swift — SwiftUI Canvas, renders motifPaths
+- Views/MinimalControlPanel.swift — left panel, 256px

@@ -70,10 +70,11 @@ import Foundation
     #expect(abs(midOfTwo.y - midOrig.y) < 0.5)
 }
 
-// 6. WeaveSolver — two V-arms sharing an inner point produce a detectable crossing.
-// A single isolated hex cell's arms occupy separate sectors and never intersect;
-// crossings only appear when arms from adjacent cells overlap. We test the solver
-// directly with two arms whose sub-segments provably meet at the shared inner vertex.
+// 6. WeaveSolver — crossing detection with explicitly constructed overlapping arms.
+// Arm extension (spacing * 0.15) pushes outerA/outerB along the arm direction, but
+// at standard cellScale=0.92 the cells are too far apart (~65pt gap) for extended
+// arms to bridge and produce geometric crossings. We test the solver directly with
+// two V-arms whose sub-segments provably meet at a shared inner vertex.
 @Test func weaveSolverDetectsCrossings() {
     let armA = ArmPoints(outerA: Vec2(-10, -10), inner: Vec2(0, 0), outerB: Vec2(10, -10))
     let armB = ArmPoints(outerA: Vec2(-10,  10), inner: Vec2(0, 0), outerB: Vec2(10,  10))
@@ -83,4 +84,22 @@ import Foundation
 
     let allGapTs = strands.flatMap { $0.segments }.flatMap(\.gapAt)
     #expect(!allGapTs.isEmpty)
+}
+
+// 6b. Arm extension — outerA/outerB move away from inner by the extension amount.
+@Test func armExtensionMovesOuterPoints() {
+    let spec = GridSpec(family: .hexagonal, columns: 2, rows: 1,
+                        spacing: 80, cellScale: 0.92, contactT: 0.28)
+    let cells = GridGenerator().generate(spec: spec)
+    let cell = cells[0]
+
+    let baseArms = HexStarRecipe().motifArms(for: cell, contactT: 0.28, armExtension: 0)
+    let extArms  = HexStarRecipe().motifArms(for: cell, contactT: 0.28, armExtension: 12)
+
+    for (base, ext) in zip(baseArms, extArms) {
+        let baseDist = vec2Distance(base.outerA, base.inner)
+        let extDist  = vec2Distance(ext.outerA,  ext.inner)
+        #expect(extDist > baseDist + 11.0) // extended by ~12pt
+        #expect(ext.inner == base.inner)   // inner unchanged
+    }
 }

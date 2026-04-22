@@ -3,7 +3,7 @@ struct HexStarRecipe: MotifRecipe {
         cell.vertices.map { LineSeg(start: cell.center, end: $0) }
     }
 
-    func motifArms(for cell: GridCell, contactT: Double) -> [ArmPoints] {
-        brougArms(poly: cell.vertices, contactT: contactT)
+    func motifArms(for cell: GridCell, contactT: Double, armExtension: Double) -> [ArmPoints] {
+        brougArms(poly: cell.vertices, contactT: contactT, armExtension: armExtension)
     }
 }

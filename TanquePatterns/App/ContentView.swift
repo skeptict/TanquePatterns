@@ -1,10 +1,18 @@
 import SwiftUI
+import SwiftData
 
-// Placeholder — replaced in Session 2 with full canvas UI.
 struct ContentView: View {
+    @StateObject private var vm = PatternViewModel()
+    @Environment(\.modelContext) private var modelContext
+
     var body: some View {
-        Text("Tanque Patterns")
-            .frame(minWidth: 800, minHeight: 600)
+        HStack(spacing: 0) {
+            MinimalControlPanel(vm: vm)
+                .frame(width: 256)
+            PatternCanvas(vm: vm)
+        }
+        .background(Color(hex: "#0d0e10"))
+        .ignoresSafeArea()
     }
 }
 

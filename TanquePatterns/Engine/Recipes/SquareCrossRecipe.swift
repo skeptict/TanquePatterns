@@ -5,7 +5,7 @@ struct SquareCrossRecipe: MotifRecipe {
         cell.vertices.map { LineSeg(start: cell.center, end: $0) }
     }
 
-    func motifArms(for cell: GridCell, contactT: Double) -> [ArmPoints] {
+    func motifArms(for cell: GridCell, contactT: Double, armExtension: Double) -> [ArmPoints] {
         let v = cell.vertices
         guard v.count == 4 else { return [] }
         var arms: [ArmPoints] = []
