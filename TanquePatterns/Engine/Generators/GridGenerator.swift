@@ -46,7 +46,9 @@ struct GridGenerator {
 
         func key(_ type: CellType, _ cx: Double, _ cy: Double) -> Int64 {
             let ti: Int64 = type == .hexagon ? 0 : type == .square ? 1 : 2
-            return ti * 1_000_000_000_000 + Int64(cx * 8).magnitude * 1_000_000 + Int64(cy * 8).magnitude
+            let kx = Int64(bitPattern: UInt64(Int64(cx * 8).magnitude)) * 1_000_000
+            let ky = Int64(bitPattern: UInt64(Int64(cy * 8).magnitude))
+            return ti * 1_000_000_000_000 + kx + ky
         }
 
         func add(_ cell: GridCell) {
@@ -73,7 +75,7 @@ struct GridGenerator {
                     let v0 = hexVerts[i]
                     let v1 = hexVerts[(i + 1) % 6]
                     let edgeMid = (v0 + v1) * 0.5
-                    let edgeDir = normalize(v1 - v0)
+                    let _ = normalize(v1 - v0)
                     let inward = normalize(hCenter - edgeMid)
 
                     // Square: sits between two hex edges, center is offset from hex edge midpoint

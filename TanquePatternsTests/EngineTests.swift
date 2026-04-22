@@ -70,13 +70,16 @@ import Foundation
     #expect(abs(midOfTwo.y - midOrig.y) < 0.5)
 }
 
-// 6. WeaveSolver — 1×1 hex grid detects at least one crossing
+// 6. WeaveSolver — two V-arms sharing an inner point produce a detectable crossing.
+// A single isolated hex cell's arms occupy separate sectors and never intersect;
+// crossings only appear when arms from adjacent cells overlap. We test the solver
+// directly with two arms whose sub-segments provably meet at the shared inner vertex.
 @Test func weaveSolverDetectsCrossings() {
-    let spec = GridSpec(family: .hexagonal, columns: 1, rows: 1,
-                        spacing: 80, cellScale: 0.92, contactT: 0.28)
-    let cells = GridGenerator().generate(spec: spec)
-    let resolved = MotifRecipeResolver().resolve(cells: cells, spec: spec)
-    let strands = WeaveSolver().solve(cells: resolved)
+    let armA = ArmPoints(outerA: Vec2(-10, -10), inner: Vec2(0, 0), outerB: Vec2(10, -10))
+    let armB = ArmPoints(outerA: Vec2(-10,  10), inner: Vec2(0, 0), outerB: Vec2(10,  10))
+    let fakeCell = GridCell(id: UUID(), type: .hexagon, center: .zero, vertices: [], orientation: 0)
+    let resolved = ResolvedCell(cell: fakeCell, constructionLines: [], motifArms: [armA, armB])
+    let strands = WeaveSolver().solve(cells: [resolved])
 
     let allGapTs = strands.flatMap { $0.segments }.flatMap(\.gapAt)
     #expect(!allGapTs.isEmpty)
