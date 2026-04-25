@@ -4,7 +4,11 @@ import Foundation
 struct PatternRenderer {
     func render(cells: [ResolvedCell], spec: GridSpec,
                 weaveMode: WeaveMode, bandOffset: Double, bandCount: Int) -> RenderOutput {
-        let constructionPaths = cells.flatMap { cell in
+
+        let snapped = snapPass(cells, spec: spec)
+        let visibleCells = snapped.filter { !$0.cell.isBleed }
+
+        let constructionPaths = visibleCells.flatMap { cell in
             cell.constructionLines.map { seg in
                 let p = CGMutablePath()
                 p.move(to: CGPoint(seg.start))
@@ -13,8 +17,8 @@ struct PatternRenderer {
             }
         }
 
-        let motifPaths = cells.flatMap { cell in
-            cell.motifArms.map { arm in
+        let motifPathsByCell = visibleCells.map { cell in
+            cell.motifArms.map { arm -> CGPath in
                 let p = CGMutablePath()
                 p.move(to: CGPoint(arm.outerA))
                 p.addLine(to: CGPoint(arm.inner))
@@ -23,7 +27,9 @@ struct PatternRenderer {
             }
         }
 
-        let gridPaths = cells.map { cell -> CGPath in
+        let motifPaths = motifPathsByCell.flatMap { $0 }
+
+        let gridPaths = visibleCells.map { cell -> CGPath in
             let p = CGMutablePath()
             guard let first = cell.cell.vertices.first else { return p }
             p.move(to: CGPoint(first))
@@ -32,10 +38,21 @@ struct PatternRenderer {
             return p as CGPath
         }
 
+        let contactPointPaths = visibleCells.filter { $0.cell.type != .triangle }.flatMap { cell in
+            cell.motifArms.flatMap { arm -> [CGPath] in
+                [arm.outerA, arm.outerB].map { pt in
+                    let r = 2.5
+                    let p = CGMutablePath()
+                    p.addEllipse(in: CGRect(x: pt.x - r, y: pt.y - r, width: r * 2, height: r * 2))
+                    return p as CGPath
+                }
+            }
+        }
+
         let wovenPaths: [CGPath]
         if weaveMode == .woven {
             let solver = WeaveSolver()
-            let strands = solver.solve(cells: cells)
+            let strands = solver.solve(cells: visibleCells)
             wovenPaths = strands.flatMap { strand in
                 strand.segments.map { seg in strandPath(seg) }
             }
@@ -45,7 +62,7 @@ struct PatternRenderer {
 
         let bandPaths: [CGPath] = (1...max(1, bandCount)).flatMap { band in
             let dist = bandOffset * Double(band)
-            return cells.flatMap { cell in
+            return visibleCells.flatMap { cell in
                 cell.motifArms.flatMap { arm -> [CGPath] in
                     let result = offsetArm(arm, distance: dist)
                     return [result.positive, result.negative].map { offsetted in
@@ -59,7 +76,7 @@ struct PatternRenderer {
             }
         }
 
-        let boundingRect = cells.reduce(CGRect.null) { acc, cell in
+        let boundingRect = visibleCells.reduce(CGRect.null) { acc, cell in
             acc.union(cellBoundingRect(cell, padding: spec.spacing / 2.0))
         }
 
@@ -69,11 +86,53 @@ struct PatternRenderer {
             wovenPaths: wovenPaths,
             gridPaths: gridPaths,
             bandPaths: bandPaths,
+            contactPointPaths: contactPointPaths,
+            motifPathsByCell: motifPathsByCell,
             boundingRect: boundingRect
         )
     }
 
     // MARK: - Private
+
+    private struct IndexedArm {
+        var arm: ArmPoints
+        let cellID: UUID
+    }
+
+    private func snapPass(_ resolved: [ResolvedCell], spec: GridSpec) -> [ResolvedCell] {
+        var indexed: [IndexedArm] = resolved.flatMap { rc in
+            rc.motifArms.map { IndexedArm(arm: $0, cellID: rc.cell.id) }
+        }
+        let tolerance = spec.spacing * 0.08
+        for i in indexed.indices {
+            for j in (i+1)..<indexed.count {
+                guard indexed[i].cellID != indexed[j].cellID else { continue }
+                let checks: [(Vec2, Vec2, Bool, Bool)] = [
+                    (indexed[i].arm.outerA, indexed[j].arm.outerA, true,  true),
+                    (indexed[i].arm.outerA, indexed[j].arm.outerB, true,  false),
+                    (indexed[i].arm.outerB, indexed[j].arm.outerA, false, true),
+                    (indexed[i].arm.outerB, indexed[j].arm.outerB, false, false),
+                ]
+                for (p1, p2, isAi, isAj) in checks {
+                    if vec2Distance(p1, p2) < tolerance {
+                        let mid = (p1 + p2) * 0.5
+                        if isAi { indexed[i].arm = ArmPoints(outerA: mid, inner: indexed[i].arm.inner, outerB: indexed[i].arm.outerB) }
+                        else     { indexed[i].arm = ArmPoints(outerA: indexed[i].arm.outerA, inner: indexed[i].arm.inner, outerB: mid) }
+                        if isAj { indexed[j].arm = ArmPoints(outerA: mid, inner: indexed[j].arm.inner, outerB: indexed[j].arm.outerB) }
+                        else     { indexed[j].arm = ArmPoints(outerA: indexed[j].arm.outerA, inner: indexed[j].arm.inner, outerB: mid) }
+                        break
+                    }
+                }
+            }
+        }
+        var armIdx = 0
+        return resolved.map { rc in
+            let count = rc.motifArms.count
+            let snappedArms = indexed[armIdx..<armIdx+count].map(\.arm)
+            armIdx += count
+            return ResolvedCell(cell: rc.cell, constructionLines: rc.constructionLines, motifArms: Array(snappedArms))
+        }
+    }
 
     private let defaultGapWidth = 4.0
 

@@ -23,17 +23,11 @@ struct TitleBar: View {
 
     private var leftCluster: some View {
         HStack(spacing: 8) {
-            trafficLights
+            // Add spacer to avoid traffic light buttons
+            Spacer()
+                .frame(width: 60)
             appIcon
             wordmark
-        }
-    }
-
-    private var trafficLights: some View {
-        HStack(spacing: 7) {
-            Circle().fill(Color(hex: "#ff5f57")).frame(width: 12, height: 12)
-            Circle().fill(Color(hex: "#febc2e")).frame(width: 12, height: 12)
-            Circle().fill(Color(hex: "#28c840")).frame(width: 12, height: 12)
         }
     }
 

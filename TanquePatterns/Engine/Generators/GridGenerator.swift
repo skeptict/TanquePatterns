@@ -14,16 +14,22 @@ struct GridGenerator {
 
     private func hexGrid(spec: GridSpec) -> [GridCell] {
         let hw = spec.spacing * sqrt(3.0) / 2.0
+        // Hex radius must equal hw at cellScale=1.0 for adjacent vertices to coincide.
+        // Center-to-center = 2*hw, so touching radius = hw; scale linearly with cellScale.
+        let hexRadius = hw * spec.cellScale
         var cells: [GridCell] = []
-        for r in 0..<spec.rows {
-            for c in 0..<spec.columns {
-                let cx = Double(c) * hw * 2.0 + (r % 2 == 1 ? hw : 0) + hw
+        // Generate one bleed ring beyond the requested bounds (-1...rows, -1...columns)
+        for r in -1...spec.rows {
+            for c in -1...spec.columns {
+                let cx = Double(c) * hw * 2.0 + (((r % 2) + 2) % 2 == 1 ? hw : 0) + hw
                 let cy = Double(r) * spec.spacing * 1.5 + spec.spacing
                 let center = Vec2(cx, cy)
                 let verts = regularPolygon(center: center, n: 6,
-                                           radius: spec.cellRadius, phase: 0)
+                                           radius: hexRadius, phase: 0)
+                let isBleed = r < 0 || r >= spec.rows || c < 0 || c >= spec.columns
                 cells.append(GridCell(id: UUID(), type: .hexagon,
-                                      center: center, vertices: verts, orientation: 0))
+                                      center: center, vertices: verts, orientation: 0,
+                                      isBleed: isBleed))
             }
         }
         return cells
@@ -37,7 +43,7 @@ struct GridGenerator {
         let t2x = t1x / 2.0
         let t2y = t1x * sqrt(3.0) / 2.0
 
-        // Build bounding box to filter cells
+        // Visible bounding box (matches original filter)
         let maxX = t1x * Double(spec.columns) + s
         let maxY = t2y * Double(spec.rows) + s
 
@@ -54,14 +60,21 @@ struct GridGenerator {
         func add(_ cell: GridCell) {
             let k = key(cell.type, cell.center.x, cell.center.y)
             guard !seen.contains(k) else { return }
-            guard cell.center.x > -s, cell.center.x < maxX + s,
-                  cell.center.y > -s, cell.center.y < maxY + s else { return }
+            // Accept a wider range (bleed zone = one extra step beyond visible bounds)
+            guard cell.center.x > -s * 1.5, cell.center.x < maxX + s * 1.5,
+                  cell.center.y > -s * 1.5, cell.center.y < maxY + s * 1.5 else { return }
             seen.insert(k)
-            cells.append(cell)
+            // Mark as bleed if outside the original visible bounds
+            let isBleed = cell.center.x <= -s || cell.center.x >= maxX + s ||
+                          cell.center.y <= -s || cell.center.y >= maxY + s
+            cells.append(GridCell(id: cell.id, type: cell.type, center: cell.center,
+                                  vertices: cell.vertices, orientation: cell.orientation,
+                                  isBleed: isBleed))
         }
 
-        for row in 0..<(spec.rows + 1) {
-            for col in 0..<(spec.columns + 1) {
+        // Expand loop by one step in each direction to generate bleed ring
+        for row in -1..<(spec.rows + 2) {
+            for col in -1..<(spec.columns + 2) {
                 let hx = Double(col) * t1x + Double(row) * t2x
                 let hy = Double(row) * t2y
                 let hCenter = Vec2(hx, hy)
@@ -104,16 +117,19 @@ struct GridGenerator {
 
     private func squareFourfoldGrid(spec: GridSpec) -> [GridCell] {
         var cells: [GridCell] = []
-        for r in 0..<spec.rows {
-            for c in 0..<spec.columns {
+        // Generate one bleed ring beyond the requested bounds
+        for r in -1...spec.rows {
+            for c in -1...spec.columns {
                 let cx = Double(c) * spec.spacing + spec.spacing / 2.0
                 let cy = Double(r) * spec.spacing + spec.spacing / 2.0
                 let center = Vec2(cx, cy)
                 let verts = regularPolygon(center: center, n: 4,
                                            radius: spec.cellRadius * sqrt(2.0),
                                            phase: -.pi / 4.0)
+                let isBleed = r < 0 || r >= spec.rows || c < 0 || c >= spec.columns
                 cells.append(GridCell(id: UUID(), type: .square,
-                                      center: center, vertices: verts, orientation: 0))
+                                      center: center, vertices: verts, orientation: 0,
+                                      isBleed: isBleed))
             }
         }
         return cells
@@ -123,16 +139,19 @@ struct GridGenerator {
 
     private func dodecaGrid(spec: GridSpec) -> [GridCell] {
         var cells: [GridCell] = []
-        for r in 0..<spec.rows {
-            for c in 0..<spec.columns {
+        // Generate one bleed ring beyond the requested bounds
+        for r in -1...spec.rows {
+            for c in -1...spec.columns {
                 let cx = Double(c) * spec.spacing + spec.spacing / 2.0
                 let cy = Double(r) * spec.spacing + spec.spacing / 2.0
                 let center = Vec2(cx, cy)
                 let verts = regularPolygon(center: center, n: 12,
                                            radius: spec.cellRadius * 0.96,
                                            phase: -.pi / 12.0)
+                let isBleed = r < 0 || r >= spec.rows || c < 0 || c >= spec.columns
                 cells.append(GridCell(id: UUID(), type: .hexagon,
-                                      center: center, vertices: verts, orientation: 0))
+                                      center: center, vertices: verts, orientation: 0,
+                                      isBleed: isBleed))
             }
         }
         return cells

@@ -17,32 +17,32 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		FDC5215E2F97C89700ED1B2C /* TanquePatterns.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TanquePatterns.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA000001000000000000AA01 /* TanquePatternsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TanquePatternsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FDC5215E2F97C89700ED1B2C /* TanquePatterns.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TanquePatterns.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		FDC521602F97C89700ED1B2C /* TanquePatterns */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TanquePatterns;
-			sourceTree = "<group>";
-		};
 		AA000002000000000000AA02 /* TanquePatternsTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = TanquePatternsTests;
 			sourceTree = "<group>";
 		};
+		FDC521602F97C89700ED1B2C /* TanquePatterns */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TanquePatterns;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		FDC5215B2F97C89700ED1B2C /* Frameworks */ = {
+		AA000005000000000000AA05 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AA000005000000000000AA05 /* Frameworks */ = {
+		FDC5215B2F97C89700ED1B2C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -73,6 +73,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		AA000003000000000000AA03 /* TanquePatternsTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA000008000000000000AA08 /* Build configuration list for PBXNativeTarget "TanquePatternsTests" */;
+			buildPhases = (
+				AA000004000000000000AA04 /* Sources */,
+				AA000005000000000000AA05 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AA000009000000000000AA09 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				AA000002000000000000AA02 /* TanquePatternsTests */,
+			);
+			name = TanquePatternsTests;
+			productName = TanquePatternsTests;
+			productReference = AA000001000000000000AA01 /* TanquePatternsTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		FDC5215D2F97C89700ED1B2C /* TanquePatterns */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FDC521692F97C89900ED1B2C /* Build configuration list for PBXNativeTarget "TanquePatterns" */;
@@ -95,26 +115,6 @@
 			productReference = FDC5215E2F97C89700ED1B2C /* TanquePatterns.app */;
 			productType = "com.apple.product-type.application";
 		};
-		AA000003000000000000AA03 /* TanquePatternsTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AA000008000000000000AA08 /* Build configuration list for PBXNativeTarget "TanquePatternsTests" */;
-			buildPhases = (
-				AA000004000000000000AA04 /* Sources */,
-				AA000005000000000000AA05 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				AA000009000000000000AA09 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				AA000002000000000000AA02 /* TanquePatternsTests */,
-			);
-			name = TanquePatternsTests;
-			productName = TanquePatternsTests;
-			productReference = AA000001000000000000AA01 /* TanquePatternsTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -125,12 +125,12 @@
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
-					FDC5215D2F97C89700ED1B2C = {
-						CreatedOnToolsVersion = 26.4;
-					};
 					AA000003000000000000AA03 = {
 						CreatedOnToolsVersion = 26.4;
 						TestTargetID = FDC5215D2F97C89700ED1B2C;
+					};
+					FDC5215D2F97C89700ED1B2C = {
+						CreatedOnToolsVersion = 26.4;
 					};
 				};
 			};
@@ -165,14 +165,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		FDC5215A2F97C89700ED1B2C /* Sources */ = {
+		AA000004000000000000AA04 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AA000004000000000000AA04 /* Sources */ = {
+		FDC5215A2F97C89700ED1B2C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -190,6 +190,46 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		AA000006000000000000AA06 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AKR62MZF3K;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = tanque.org.TanquePatternsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TanquePatterns.app/Contents/MacOS/TanquePatterns";
+			};
+			name = Debug;
+		};
+		AA000007000000000000AA07 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = AKR62MZF3K;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = tanque.org.TanquePatternsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TanquePatterns.app/Contents/MacOS/TanquePatterns";
+			};
+			name = Release;
+		};
 		FDC521672F97C89900ED1B2C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -322,7 +362,7 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -354,7 +394,7 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -374,49 +414,18 @@
 			};
 			name = Release;
 		};
-		AA000006000000000000AA06 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = AKR62MZF3K;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.4;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = tanque.org.TanquePatternsTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TanquePatterns.app/Contents/MacOS/TanquePatterns";
-			};
-			name = Debug;
-		};
-		AA000007000000000000AA07 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = AKR62MZF3K;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.4;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = tanque.org.TanquePatternsTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TanquePatterns.app/Contents/MacOS/TanquePatterns";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AA000008000000000000AA08 /* Build configuration list for PBXNativeTarget "TanquePatternsTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA000006000000000000AA06 /* Debug */,
+				AA000007000000000000AA07 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		FDC521592F97C89700ED1B2C /* Build configuration list for PBXProject "TanquePatterns" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -431,15 +440,6 @@
 			buildConfigurations = (
 				FDC5216A2F97C89900ED1B2C /* Debug */,
 				FDC5216B2F97C89900ED1B2C /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		AA000008000000000000AA08 /* Build configuration list for PBXNativeTarget "TanquePatternsTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AA000006000000000000AA06 /* Debug */,
-				AA000007000000000000AA07 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

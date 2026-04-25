@@ -1,7 +1,6 @@
 struct MotifRecipeResolver {
     func resolve(cells: [GridCell], spec: GridSpec) -> [ResolvedCell] {
-        let armExtension = spec.spacing * 0.15
-        return cells.map { cell in
+        cells.map { cell in
             let recipe: (any MotifRecipe)?
             switch (cell.type, spec.family) {
             case (.hexagon, .dodecagonal):
@@ -23,8 +22,7 @@ struct MotifRecipeResolver {
             return ResolvedCell(
                 cell: cell,
                 constructionLines: recipe.constructionLines(for: cell, contactT: spec.contactT),
-                motifArms: recipe.motifArms(for: cell, contactT: spec.contactT,
-                                            armExtension: armExtension)
+                motifArms: recipe.motifArms(for: cell, contactT: spec.contactT)
             )
         }
     }

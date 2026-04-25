@@ -40,20 +40,15 @@ func regularPolygon(center: Vec2, n: Int, radius: Double, phase: Double) -> [Vec
 
 // Broug arm construction for any even regular polygon.
 // outerA and outerB are contact points near each vertex; inner is their chord intersection.
-// armExtension pushes outerA/outerB further along the arm direction beyond the contact point,
-// enabling inter-cell crossings when adjacent cells' arms overlap.
-func brougArms(poly: [Vec2], contactT: Double, armExtension: Double = 0.0) -> [ArmPoints] {
+func brougArms(poly: [Vec2], contactT: Double) -> [ArmPoints] {
     let n = poly.count
     guard n >= 4, n % 2 == 0 else { return [] }
     let half = n / 2
 
     return (0..<n).map { i in
-        // end contact of edge (i-1), near poly[i]
         let outerA = lerp(poly[i], poly[(i - 1 + n) % n], t: contactT)
-        // start contact of edge i, near poly[i]
         let outerB = lerp(poly[i], poly[(i + 1) % n], t: contactT)
 
-        // Chord partners: connect each contact across the polygon (opposite edge)
         let oppA = (i - 1 + half + n) % n
         let partnerA = lerp(poly[oppA], poly[(oppA + 1) % n], t: contactT)
 
@@ -63,11 +58,6 @@ func brougArms(poly: [Vec2], contactT: Double, armExtension: Double = 0.0) -> [A
         let inner = lineIntersect(outerA, partnerA, outerB, partnerB)
             ?? centroid(poly)
 
-        if armExtension > 0 {
-            let extA = outerA + normalize(outerA - inner) * armExtension
-            let extB = outerB + normalize(outerB - inner) * armExtension
-            return ArmPoints(outerA: extA, inner: inner, outerB: extB)
-        }
         return ArmPoints(outerA: outerA, inner: inner, outerB: outerB)
     }
 }

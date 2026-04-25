@@ -6,6 +6,28 @@ Before touching any file, declare:
 - Every file you will MODIFY (with what changes)
 Wait for confirmation before proceeding.
 
+## Standing Permissions
+
+The following actions are pre-authorized for this project and do not require
+individual confirmation:
+
+- Read any file in the project directory
+- Create new Swift source files in TanquePatterns/
+- Edit any existing Swift source file in TanquePatterns/
+- Delete files that are explicitly listed in the current session's Pre-Task Contract
+- Run xcodebuild to verify builds and tests
+- Run bash commands for file inspection (cat, grep, find, ls, wc, stat)
+- Commit to the current branch with descriptive commit messages
+- Call Tanque Open Brain MCP tools (capture_thought, search_thoughts, list_thoughts)
+
+The following always require explicit confirmation before proceeding:
+
+- Merging to main
+- Deleting files NOT listed in the Pre-Task Contract
+- Adding Swift Package dependencies
+- Modifying TanquePatternsTests/ target membership or project structure
+- Any changes outside the TanquePatterns/ project directory
+
 ## Self-verification
 After every meaningful change, run this build command and fix all errors before proceeding:
 
@@ -67,4 +89,14 @@ After every session, report:
 - Model/PatternDocument.swift — SwiftData @Model (thin identity + JSON blob)
 - ViewModel/PatternViewModel.swift — recompute() runs engine on detached Task
 - Views/PatternCanvas.swift — SwiftUI Canvas, renders motifPaths
-- Views/MinimalControlPanel.swift — left panel, 256px
+- Views/LeftPanel.swift — left panel, 256px (replaced MinimalControlPanel.swift in Session 3)
+- Views/TitleBar.swift — 48px title bar with mode tabs, theme swatches, export button
+- Views/ExportSheet.swift — PNG + PDF export UI
+- Views/TileCanvas.swift — tile mode canvas (3×3 repeat)
+
+## Codex session additions (2026-04-23/24)
+- Export sheet: PNG and PDF via ImageRenderer + NSHostingView.dataWithPDF
+- SwiftData persistence: PatternDocument attach/save, autosave debounced 400ms
+- Export rendering: PatternRenderExport (Pattern mode) + TileRenderExport (Tile mode)
+- Export clipping fix: translate by negative boundingRect origin before drawing
+- PDF export: NSHostingView.dataWithPDF (not NSImage.pdfData — doesn't exist)

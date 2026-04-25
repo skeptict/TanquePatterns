@@ -12,7 +12,7 @@ struct PatternDocumentState: Codable {
     static var `default`: PatternDocumentState {
         PatternDocumentState(
             gridSpec: GridSpecState(family: .hexagonal, columns: 4, rows: 3,
-                                   spacing: 80, cellScale: 0.92, contactT: 0.28),
+                                   spacing: 80, cellScale: 1.00, contactT: 0.28),
             displayConfig: DisplayConfig(themeID: .dark, lineWeight: 1.5),
             layerConfig: LayerConfig(showGuideGrid: false, showConstruction: false,
                                      showMotif: true, showFill: false),
@@ -57,4 +57,4 @@ struct BandConfig: Codable {
 }
 
 enum PatternMode: String, Codable { case construct, pattern, tile, analyze }
-enum ThemeID: String, Codable { case dark, chalk, night, paper }
+enum ThemeID: String, Codable, CaseIterable { case dark, chalk, night, paper }
