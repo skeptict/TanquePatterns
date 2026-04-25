@@ -20,26 +20,44 @@ struct LeftPanel: View {
     @ObservedObject var vm: PatternViewModel
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                familySection
-                PanelDivider()
-                gridSection
-                PanelDivider()
-                motifSection
-                PanelDivider()
-                layersSection
-                PanelDivider()
-                bandsSection
-                tileSection
-                PanelDivider()
-                outputSection
-                analyzeSection
-                PanelDivider()
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    familySection
+                    PanelDivider()
+                    gridSection
+                    PanelDivider()
+                    motifSection
+                    PanelDivider()
+                    layersSection
+                    PanelDivider()
+                    bandsSection
+                    tileSection
+                    PanelDivider()
+                    outputSection
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 13)
+            }
+
+            if vm.mode == .analyze {
+                Rectangle().fill(TP.border).frame(height: 1)
+                ScrollView {
+                    analyzeInspectorContent
+                        .padding(.horizontal, 12)
+                        .padding(.top, 10)
+                        .padding(.bottom, 6)
+                }
+                .frame(maxHeight: 160)
+            }
+
+            Rectangle().fill(TP.border).frame(height: 1)
+            VStack(spacing: 4) {
+                importButton
                 resetButton
             }
             .padding(.horizontal, 12)
-            .padding(.top, 13)
+            .padding(.vertical, 8)
         }
         .frame(width: 256)
         .background(vm.panelBg)
@@ -278,33 +296,29 @@ struct LeftPanel: View {
 
     // MARK: - Analyze inspector
 
-    @ViewBuilder
-    private var analyzeSection: some View {
-        if vm.mode == .analyze {
-            PanelDivider()
-            VStack(alignment: .leading, spacing: 0) {
-                SectionLabel("Analyze")
-                if let sel = vm.selectedCellIndex, sel < vm.resolvedCells.count {
-                    let rc = vm.resolvedCells[sel]
-                    let cell = rc.cell
-                    let edgeLen = cell.vertices.count >= 2
-                        ? vec2Distance(cell.vertices[0], cell.vertices[1])
-                        : 0.0
-                    StatRow(label: "type",   value: cell.type.rawValue)
-                    StatRow(label: "recipe", value: recipeName(for: cell.type,
-                                                               family: vm.state.gridSpec.family))
-                    StatRow(label: "arms",   value: rc.motifArms.isEmpty ? "—"
-                                                    : "\(rc.motifArms.count)")
-                    StatRow(label: "edge",   value: String(format: "%.1fpx", edgeLen))
-                    StatRow(label: "center", value: String(format: "%.0f, %.0f",
-                                                           cell.center.x, cell.center.y))
-                } else {
-                    Text("Tap any cell\nto inspect")
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(vm.panelMuted)
-                        .lineSpacing(4)
-                        .padding(.top, 4)
-                }
+    private var analyzeInspectorContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionLabel("Analyze")
+            if let sel = vm.selectedCellIndex, sel < vm.resolvedCells.count {
+                let rc = vm.resolvedCells[sel]
+                let cell = rc.cell
+                let edgeLen = cell.vertices.count >= 2
+                    ? vec2Distance(cell.vertices[0], cell.vertices[1])
+                    : 0.0
+                StatRow(label: "type",   value: cell.type.rawValue)
+                StatRow(label: "recipe", value: recipeName(for: cell.type,
+                                                           family: vm.state.gridSpec.family))
+                StatRow(label: "arms",   value: rc.motifArms.isEmpty ? "—"
+                                                : "\(rc.motifArms.count)")
+                StatRow(label: "edge",   value: String(format: "%.1fpx", edgeLen))
+                StatRow(label: "center", value: String(format: "%.0f, %.0f",
+                                                       cell.center.x, cell.center.y))
+            } else {
+                Text("Tap any cell\nto inspect")
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundColor(vm.panelMuted)
+                    .lineSpacing(4)
+                    .padding(.top, 4)
             }
         }
     }
@@ -317,7 +331,25 @@ struct LeftPanel: View {
         }
     }
 
-    // MARK: - Reset
+    // MARK: - Footer buttons
+
+    private var importButton: some View {
+        Button(action: { vm.importConfig() }) {
+            HStack {
+                Image(systemName: "square.and.arrow.down")
+                    .font(.system(size: 10))
+                Text("Import config…")
+                    .font(.system(size: 11, weight: .regular, design: .monospaced))
+            }
+            .foregroundColor(TP.textMuted)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(vm.panelBg)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(TP.border, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
 
     private var resetButton: some View {
         Button(action: {
@@ -337,7 +369,6 @@ struct LeftPanel: View {
             .overlay(RoundedRectangle(cornerRadius: 6).stroke(TP.border, lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .padding(.bottom, 16)
     }
 }
 
