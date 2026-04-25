@@ -26,7 +26,9 @@ final class PatternDocument {
     }
 
     func loadState() -> PatternDocumentState {
-        (try? JSONDecoder().decode(PatternDocumentState.self, from: specJSON)) ?? .default
+        var state = (try? JSONDecoder().decode(PatternDocumentState.self, from: specJSON)) ?? .default
+        state.gridSpec.cellScale = min(1.0, state.gridSpec.cellScale)
+        return state
     }
 
     func saveState(_ state: PatternDocumentState) {

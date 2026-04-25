@@ -1,5 +1,21 @@
 import SwiftUI
 
+// MARK: - Panel theme environment keys
+
+private struct PanelLabelColorKey: EnvironmentKey { static let defaultValue: Color = TP.textMut2 }
+private struct PanelMutedColorKey: EnvironmentKey { static let defaultValue: Color = TP.textMuted }
+
+extension EnvironmentValues {
+    fileprivate(set) var panelLabelColor: Color {
+        get { self[PanelLabelColorKey.self] }
+        set { self[PanelLabelColorKey.self] = newValue }
+    }
+    fileprivate(set) var panelMutedColor: Color {
+        get { self[PanelMutedColorKey.self] }
+        set { self[PanelMutedColorKey.self] = newValue }
+    }
+}
+
 struct LeftPanel: View {
     @ObservedObject var vm: PatternViewModel
 
@@ -19,6 +35,8 @@ struct LeftPanel: View {
                 PanelDivider()
                 outputSection
                 analyzeSection
+                PanelDivider()
+                resetButton
             }
             .padding(.horizontal, 12)
             .padding(.top, 13)
@@ -28,6 +46,8 @@ struct LeftPanel: View {
         .overlay(alignment: .trailing) {
             Rectangle().fill(TP.border).frame(width: 1)
         }
+        .environment(\.panelLabelColor, vm.panelText)
+        .environment(\.panelMutedColor, vm.panelMuted)
     }
 
     // MARK: - Family
@@ -57,7 +77,8 @@ struct LeftPanel: View {
                     set: { vm.state.gridSpec.columns = Int($0) }
                 ),
                 range: 2...8, step: 1,
-                display: { "\(Int($0))" }
+                display: { "\(Int($0))" },
+                accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
             )
             PanelSlider(
                 label: "Rows",
@@ -66,7 +87,8 @@ struct LeftPanel: View {
                     set: { vm.state.gridSpec.rows = Int($0) }
                 ),
                 range: 1...8, step: 1,
-                display: { "\(Int($0))" }
+                display: { "\(Int($0))" },
+                accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
             )
             PanelSlider(
                 label: "Spacing",
@@ -75,7 +97,8 @@ struct LeftPanel: View {
                     set: { vm.state.gridSpec.spacing = $0 }
                 ),
                 range: 52...140, step: 2,
-                display: { "\(Int($0))px" }
+                display: { "\(Int($0))px" },
+                accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
             )
             PanelSlider(
                 label: "Cell scale",
@@ -83,13 +106,13 @@ struct LeftPanel: View {
                     get: { vm.state.gridSpec.cellScale },
                     set: { vm.state.gridSpec.cellScale = $0 }
                 ),
-                range: 0.65...1.18, step: 0.01,
+                range: 0.65...1.00, step: 0.01,
                 display: { v in
-                    let base = String(format: "%.2f", v)
-                    if v < 0.93 { return "\(base) gap" }
-                    if v > 1.00 { return "\(base) overlap" }
-                    return base
-                }
+                    if v <= 0.67 { return String(format: "%.2f gap", v) }
+                    if v >= 0.99 { return "1.00 flush" }
+                    return String(format: "%.2f", v)
+                },
+                accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
             )
         }
     }
@@ -106,7 +129,8 @@ struct LeftPanel: View {
                     set: { vm.state.gridSpec.contactT = $0 }
                 ),
                 range: 0.10...0.45, step: 0.01,
-                display: { "\(Int($0 * 180))°" }
+                display: { "\(Int($0 * 180))°" },
+                accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
             )
             PanelSlider(
                 label: "Line weight",
@@ -115,8 +139,24 @@ struct LeftPanel: View {
                     set: { vm.state.displayConfig.lineWeight = $0 }
                 ),
                 range: 0.5...4.0, step: 0.1,
-                display: { String(format: "%.1fpx", $0) }
+                display: { String(format: "%.1fpx", $0) },
+                accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
             )
+            PanelDivider()
+            SectionLabel("Weave")
+            PanelToggle(
+                label: "Interlace weave",
+                checked: vm.state.weaveMode == .woven,
+                dotColor: TP.brass
+            ) { vm.state.weaveMode = $0 ? .woven : .flat }
+            if vm.state.weaveMode == .woven {
+                Text("Arms extend to show\nover/under crossings")
+                    .font(.system(size: 9.5, design: .monospaced))
+                    .foregroundColor(vm.panelMuted)
+                    .lineSpacing(3)
+                    .padding(.top, 2)
+                    .padding(.bottom, 8)
+            }
         }
     }
 
@@ -138,7 +178,7 @@ struct LeftPanel: View {
             PanelToggle(
                 label: "Motif",
                 checked: vm.state.layerConfig.showMotif,
-                dotColor: TP.textPrim.opacity(0.9)
+                dotColor: vm.panelText.opacity(0.9)
             ) { vm.state.layerConfig.showMotif = $0 }
             PanelToggle(
                 label: "Fill",
@@ -167,7 +207,8 @@ struct LeftPanel: View {
                             set: { vm.state.bandConfig.bandOffset = $0 }
                         ),
                         range: 1...24, step: 0.5,
-                        display: { "\(Int($0))px" }
+                        display: { "\(Int($0))px" },
+                        accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
                     )
                     PanelSlider(
                         label: "Count",
@@ -176,7 +217,8 @@ struct LeftPanel: View {
                             set: { vm.state.bandConfig.bandCount = Int($0) }
                         ),
                         range: 1...4, step: 1,
-                        display: { "\(Int($0))" }
+                        display: { "\(Int($0))" },
+                        accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
                     )
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -200,11 +242,12 @@ struct LeftPanel: View {
                         set: { vm.state.tileGap = $0 }
                     ),
                     range: 0...1.6, step: 0.02,
-                    display: { String(format: "%.2f", $0) }
+                    display: { String(format: "%.2f", $0) },
+                    accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
                 )
                 Text("0 = full overlap · 1 = flush · 1+ = spaced")
                     .font(.system(size: 9.5, design: .monospaced))
-                    .foregroundColor(TP.textMuted)
+                    .foregroundColor(vm.panelMuted)
                     .lineSpacing(3)
                     .padding(.bottom, 8)
             }
@@ -241,13 +284,60 @@ struct LeftPanel: View {
             PanelDivider()
             VStack(alignment: .leading, spacing: 0) {
                 SectionLabel("Analyze")
-                Text("Tap any cell\nto inspect")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(TP.textMuted)
-                    .lineSpacing(4)
-                    .padding(.top, 4)
+                if let sel = vm.selectedCellIndex, sel < vm.resolvedCells.count {
+                    let rc = vm.resolvedCells[sel]
+                    let cell = rc.cell
+                    let edgeLen = cell.vertices.count >= 2
+                        ? vec2Distance(cell.vertices[0], cell.vertices[1])
+                        : 0.0
+                    StatRow(label: "type",   value: cell.type.rawValue)
+                    StatRow(label: "recipe", value: recipeName(for: cell.type,
+                                                               family: vm.state.gridSpec.family))
+                    StatRow(label: "arms",   value: rc.motifArms.isEmpty ? "—"
+                                                    : "\(rc.motifArms.count)")
+                    StatRow(label: "edge",   value: String(format: "%.1fpx", edgeLen))
+                    StatRow(label: "center", value: String(format: "%.0f, %.0f",
+                                                           cell.center.x, cell.center.y))
+                } else {
+                    Text("Tap any cell\nto inspect")
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(vm.panelMuted)
+                        .lineSpacing(4)
+                        .padding(.top, 4)
+                }
             }
         }
+    }
+
+    private func recipeName(for type: CellType, family: GridFamily) -> String {
+        switch type {
+        case .hexagon:  return family == .dodecagonal ? "DodecaStar" : "HexStar"
+        case .square:   return family == .trihex ? "SquareCross" : "HexStar"
+        case .triangle: return "—"
+        }
+    }
+
+    // MARK: - Reset
+
+    private var resetButton: some View {
+        Button(action: {
+            vm.state = .default
+        }) {
+            HStack {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: 10))
+                Text("Reset to defaults")
+                    .font(.system(size: 11, weight: .regular, design: .monospaced))
+            }
+            .foregroundColor(TP.textMuted)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(vm.panelBg)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .overlay(RoundedRectangle(cornerRadius: 6).stroke(TP.border, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .padding(.bottom, 16)
     }
 }
 
@@ -266,12 +356,12 @@ private struct FamilyRow: View {
             HStack {
                 Text(name)
                     .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .monospaced))
-                    .foregroundColor(isSelected ? TP.brass : TP.textMut2)
+                    .foregroundColor(isSelected ? TP.brass : vm.panelText)
                 Spacer()
                 if !ref.isEmpty {
                     Text(ref)
                         .font(.system(size: 9, design: .monospaced))
-                        .foregroundColor(TP.textMuted)
+                        .foregroundColor(vm.panelMuted)
                         .opacity(0.55)
                 }
             }
@@ -294,11 +384,13 @@ struct SectionLabel: View {
     let text: String
     init(_ text: String) { self.text = text }
 
+    @Environment(\.panelMutedColor) private var mutedColor
+
     var body: some View {
         Text(text.uppercased())
             .font(.system(size: 9.5, weight: .regular, design: .monospaced))
             .tracking(8)
-            .foregroundColor(TP.textMuted)
+            .foregroundColor(mutedColor)
             .padding(.bottom, 7)
             .padding(.top, 2)
     }
@@ -316,6 +408,9 @@ struct PanelToggle: View {
     let dotColor: Color
     let onChange: (Bool) -> Void
 
+    @Environment(\.panelLabelColor) private var labelColor
+    @Environment(\.panelMutedColor) private var mutedColor
+
     var body: some View {
         HStack {
             RoundedRectangle(cornerRadius: 2)
@@ -323,7 +418,7 @@ struct PanelToggle: View {
                 .frame(width: 6, height: 6)
             Text(label)
                 .font(.system(size: 11, weight: .regular, design: .monospaced))
-                .foregroundColor(checked ? TP.textMut2 : TP.textMuted)
+                .foregroundColor(checked ? labelColor : mutedColor)
             Spacer()
             ZStack(alignment: checked ? .trailing : .leading) {
                 Capsule().fill(checked ? dotColor : TP.bgSurf3)
@@ -345,53 +440,58 @@ struct PanelSlider: View {
     let range: ClosedRange<Double>
     let step: Double
     let display: (Double) -> String
+    var accentColor: Color = TP.brass
+    var surfaceColor: Color = TP.bgSurf3
 
-    private var stepButtons: some View {
-        HStack(spacing: 2) {
-            Button(action: {
-                let newVal = max(range.lowerBound, value - step)
-                value = round(newVal * 100) / 100
-            }) {
-                Image(systemName: "minus")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(TP.textMuted)
-            }
-            .buttonStyle(.plain)
-            .frame(width: 20, height: 20)
-            .background(TP.bgSurf3)
-            .clipShape(RoundedRectangle(cornerRadius: 3))
-
-            Button(action: {
-                let newVal = min(range.upperBound, value + step)
-                value = round(newVal * 100) / 100
-            }) {
-                Image(systemName: "plus")
-                    .font(.system(size: 8, weight: .medium))
-                    .foregroundColor(TP.brass)
-            }
-            .buttonStyle(.plain)
-            .frame(width: 20, height: 20)
-            .background(TP.bgSurf3)
-            .clipShape(RoundedRectangle(cornerRadius: 3))
-        }
-    }
+    @Environment(\.panelLabelColor) private var labelColor
 
     var body: some View {
         VStack(spacing: 4) {
             HStack {
                 Text(label)
                     .font(.system(size: 11, weight: .regular, design: .monospaced))
-                    .foregroundColor(TP.textMut2)
+                    .foregroundColor(labelColor)
                 Spacer()
                 Text(display(value))
                     .font(.system(size: 11, weight: .regular, design: .monospaced))
-                    .foregroundColor(TP.brass)
-                stepButtons
+                    .foregroundColor(accentColor)
             }
-            Slider(value: $value, in: range, step: step)
-                .tint(TP.brass)
+            HStack(spacing: 5) {
+                StepButton(label: "–", surfaceColor: surfaceColor,
+                           enabled: value > range.lowerBound) {
+                    value = max(range.lowerBound, value - step)
+                }
+                Slider(value: $value, in: range, step: step)
+                    .tint(accentColor)
+                StepButton(label: "+", surfaceColor: surfaceColor,
+                           enabled: value < range.upperBound) {
+                    value = min(range.upperBound, value + step)
+                }
+            }
         }
         .padding(.bottom, 11)
+    }
+}
+
+private struct StepButton: View {
+    let label: String
+    var surfaceColor: Color = TP.bgSurf3
+    let enabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundColor(TP.textMut2)
+                .frame(width: 18, height: 18)
+                .background(surfaceColor)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .overlay(RoundedRectangle(cornerRadius: 4).stroke(TP.border, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .opacity(enabled ? 1.0 : 0.35)
+        .disabled(!enabled)
     }
 }
 
@@ -399,11 +499,14 @@ private struct StatRow: View {
     let label: String
     let value: String
 
+    @Environment(\.panelLabelColor) private var labelColor
+    @Environment(\.panelMutedColor) private var mutedColor
+
     var body: some View {
         HStack {
-            Text(label).font(.system(size: 10, design: .monospaced)).foregroundColor(TP.textMuted)
+            Text(label).font(.system(size: 10, design: .monospaced)).foregroundColor(mutedColor)
             Spacer()
-            Text(value).font(.system(size: 10, design: .monospaced)).foregroundColor(TP.textMut2)
+            Text(value).font(.system(size: 10, design: .monospaced)).foregroundColor(labelColor)
         }
         .padding(.bottom, 4)
     }
