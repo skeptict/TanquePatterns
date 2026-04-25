@@ -9,6 +9,9 @@ struct PatternTheme {
     let fill: Color
     let contact: Color
     let isPaper: Bool
+    let backgroundHex: String
+    let motifHex: String
+    let constructionHex: String
 
     static let dark = PatternTheme(
         canvasBg:     Color(hex: "#0a0b0d"),
@@ -18,7 +21,10 @@ struct PatternTheme {
         construction: Color(hex: "#c9a058").opacity(0.45),
         fill:         Color(hex: "#c9a058").opacity(0.09),
         contact:      Color(hex: "#c9a058").opacity(0.80),
-        isPaper:      false
+        isPaper:      false,
+        backgroundHex: "#0a0b0d",
+        motifHex:      "#e6e2d9",
+        constructionHex: "#c9a058"
     )
     static let chalk = PatternTheme(
         canvasBg:     Color(hex: "#16172a"),
@@ -28,7 +34,10 @@ struct PatternTheme {
         construction: Color(hex: "#9580b8").opacity(0.45),
         fill:         Color(hex: "#9580b8").opacity(0.10),
         contact:      Color(hex: "#9580b8").opacity(0.85),
-        isPaper:      false
+        isPaper:      false,
+        backgroundHex: "#16172a",
+        motifHex:      "#dbd7f5",
+        constructionHex: "#9580b8"
     )
     static let night = PatternTheme(
         canvasBg:     Color(hex: "#080e14"),
@@ -38,7 +47,10 @@ struct PatternTheme {
         construction: Color(hex: "#5aafaa").opacity(0.40),
         fill:         Color(hex: "#5aafaa").opacity(0.10),
         contact:      Color(hex: "#5aafaa").opacity(0.85),
-        isPaper:      false
+        isPaper:      false,
+        backgroundHex: "#080e14",
+        motifHex:      "#c7f0ed",
+        constructionHex: "#5aafaa"
     )
     static let paper = PatternTheme(
         canvasBg:     Color(hex: "#e8e0cc"),
@@ -48,7 +60,10 @@ struct PatternTheme {
         construction: Color(hex: "#8b4a25").opacity(0.45),
         fill:         Color(hex: "#8b4a25").opacity(0.08),
         contact:      Color(hex: "#8b4a25").opacity(0.80),
-        isPaper:      true
+        isPaper:      true,
+        backgroundHex: "#e8e0cc",
+        motifHex:      "#1f1408",
+        constructionHex: "#8b4a25"
     )
 
     static func theme(for id: ThemeID) -> PatternTheme {

@@ -169,7 +169,27 @@ import Foundation
     #expect(output.gridPaths.count == 12)
 }
 
-// 12. Renderer excludes bleed cells from path output
+// 12. SVG exporter produces valid SVG markup
+@Test func svgExporterProducesValidOutput() {
+    let spec = GridSpec(family: .hexagonal, columns: 3, rows: 2,
+                        spacing: 80, cellScale: 1.0, contactT: 0.28)
+    let cells = GridGenerator().generate(spec: spec)
+    let resolved = MotifRecipeResolver().resolve(cells: cells, spec: spec)
+    let output = PatternRenderer().render(cells: resolved, spec: spec,
+                                          weaveMode: .flat, bandOffset: 0, bandCount: 0)
+    let svgSpec = SVGExportSpec(
+        includeConstructionLines: false, includeGridLines: false, includeBands: false,
+        backgroundColor: "#0a0b0d", motifColor: "#e6e2d9", constructionColor: "#c9a058",
+        gridColor: "#ffffff", motifOpacity: 0.9, lineWeight: 1.5
+    )
+    let svg = SVGExporter().export(output: output, spec: svgSpec)
+    #expect(svg.hasPrefix("<svg "))
+    #expect(svg.hasSuffix("</svg>"))
+    #expect(svg.contains("<path d="))
+    #expect(svg.count > 500)
+}
+
+// 13. Renderer excludes bleed cells from path output
 @Test func rendererExcludesBleedCells() {
     let spec = GridSpec(family: .hexagonal, columns: 3, rows: 2,
                         spacing: 80, cellScale: 0.96, contactT: 0.28)

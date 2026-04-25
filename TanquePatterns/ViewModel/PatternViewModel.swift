@@ -17,7 +17,7 @@ final class PatternViewModel: ObservableObject {
     @Published var animStep: Double = 0
     @Published var selectedCellIndex: Int? = nil
     @Published var isExportSheetPresented = false
-    @Published var exportScale: Double = 1.0
+    @Published var exportScale: Double = 2.0
 
     static var sharedThemeID: ThemeID = .dark
 
@@ -188,6 +188,24 @@ final class PatternViewModel: ObservableObject {
         }
     }
 
+    func exportSVG(to url: URL) {
+        guard let output = renderOutput else { return }
+        let theme = activeTheme
+        let svgSpec = SVGExportSpec(
+            includeConstructionLines: state.layerConfig.showConstruction,
+            includeGridLines: state.layerConfig.showGuideGrid,
+            includeBands: state.bandConfig.showBands,
+            backgroundColor: theme.backgroundHex,
+            motifColor: theme.motifHex,
+            constructionColor: theme.constructionHex,
+            gridColor: theme.isPaper ? "#000000" : "#ffffff",
+            motifOpacity: 0.90,
+            lineWeight: state.displayConfig.lineWeight
+        )
+        let svgString = SVGExporter().export(output: output, spec: svgSpec)
+        try? svgString.data(using: .utf8)?.write(to: url)
+    }
+
     func export(to url: URL, format: ExportFormat, scale: Double) async {
         guard let output = renderOutput else { return }
         let exportBounds = exportBounds(for: output, scale: scale)
@@ -209,6 +227,8 @@ final class PatternViewModel: ObservableObject {
             hostingView.layoutSubtreeIfNeeded()
             let pdfData = hostingView.dataWithPDF(inside: hostingView.bounds)
             try? pdfData.write(to: url)
+        case .svg:
+            break  // routed through exportSVG(to:) in ExportSheet
         }
     }
 
@@ -277,4 +297,4 @@ final class PatternViewModel: ObservableObject {
     }
 }
 
-enum ExportFormat: String, CaseIterable { case png, pdf }
+enum ExportFormat: String, CaseIterable { case png, pdf, svg }
