@@ -3,7 +3,8 @@ import Foundation
 
 struct PatternRenderer {
     func render(cells: [ResolvedCell], spec: GridSpec,
-                weaveMode: WeaveMode, bandOffset: Double, bandCount: Int) -> RenderOutput {
+                weaveMode: WeaveMode, bandOffset: Double, bandCount: Int,
+                ribbonWidth: Double = 0) -> RenderOutput {
 
         let snapped = snapPass(cells, spec: spec)
         let visibleCells = snapped.filter { !$0.cell.isBleed }
@@ -76,6 +77,10 @@ struct PatternRenderer {
             }
         }
 
+        let (ribbonPaths, ribbonOutlinePaths) = ribbonWidth > 0
+            ? generateRibbonPaths(from: visibleCells, ribbonWidth: ribbonWidth, spacing: spec.spacing)
+            : ([], [])
+
         let boundingRect = visibleCells.reduce(CGRect.null) { acc, cell in
             acc.union(cellBoundingRect(cell, padding: spec.spacing / 2.0))
         }
@@ -88,11 +93,13 @@ struct PatternRenderer {
             bandPaths: bandPaths,
             contactPointPaths: contactPointPaths,
             motifPathsByCell: motifPathsByCell,
+            ribbonPaths: ribbonPaths,
+            ribbonOutlinePaths: ribbonOutlinePaths,
             boundingRect: boundingRect
         )
     }
 
-    // MARK: - Private
+    // MARK: - Snap pass
 
     private struct IndexedArm {
         var arm: ArmPoints
@@ -103,7 +110,7 @@ struct PatternRenderer {
         var indexed: [IndexedArm] = resolved.flatMap { rc in
             rc.motifArms.map { IndexedArm(arm: $0, cellID: rc.cell.id) }
         }
-        let tolerance = spec.spacing * 0.08
+        let tolerance = spec.spacing * 0.25
         for i in indexed.indices {
             for j in (i+1)..<indexed.count {
                 guard indexed[i].cellID != indexed[j].cellID else { continue }
@@ -133,6 +140,120 @@ struct PatternRenderer {
             return ResolvedCell(cell: rc.cell, constructionLines: rc.constructionLines, motifArms: Array(snappedArms))
         }
     }
+
+    // MARK: - Ribbon
+
+    private struct RibbonRecord {
+        var posOuterA: Vec2
+        var posInner:  Vec2
+        var posOuterB: Vec2
+        var negOuterB: Vec2
+        var negInner:  Vec2
+        var negOuterA: Vec2
+        let cellID: UUID
+    }
+
+    // Returns (outer corner, elbow) for a given tag (0=posA, 1=posB, 2=negA, 3=negB).
+    private func ribbonEndpoint(_ r: RibbonRecord, tag: Int) -> (Vec2, Vec2) {
+        switch tag {
+        case 0:  return (r.posOuterA, r.posInner)
+        case 1:  return (r.posOuterB, r.posInner)
+        case 2:  return (r.negOuterA, r.negInner)
+        default: return (r.negOuterB, r.negInner)
+        }
+    }
+
+    private func patchRibbon(_ r: inout RibbonRecord, tag: Int, with pt: Vec2) {
+        switch tag {
+        case 0:  r.posOuterA = pt
+        case 1:  r.posOuterB = pt
+        case 2:  r.negOuterA = pt
+        default: r.negOuterB = pt
+        }
+    }
+
+    // Miter-joins ribbon outer corners from different cells whose outer endpoints
+    // are within spacing * 0.25. Applies the same miter logic as offsetArm's elbow.
+    private func ribbonJoinPass(_ records: inout [RibbonRecord], spacing: Double, ribbonWidth: Double) {
+        let tol = spacing * 0.25
+        let miterLimit = ribbonWidth * 4.0
+
+        for i in records.indices {
+            for j in (i+1)..<records.count {
+                guard records[i].cellID != records[j].cellID else { continue }
+                for iTag in 0..<4 {
+                    let (iOuter, iElbow) = ribbonEndpoint(records[i], tag: iTag)
+                    for jTag in 0..<4 {
+                        let (jOuter, jElbow) = ribbonEndpoint(records[j], tag: jTag)
+                        guard vec2Distance(iOuter, jOuter) < tol else { continue }
+                        let mid = (iOuter + jOuter) * 0.5
+                        let miterPt: Vec2
+                        if let m = lineIntersect(iElbow, iOuter, jElbow, jOuter),
+                           vec2Distance(m, mid) < miterLimit {
+                            miterPt = m
+                        } else {
+                            miterPt = mid
+                        }
+                        patchRibbon(&records[i], tag: iTag, with: miterPt)
+                        patchRibbon(&records[j], tag: jTag, with: miterPt)
+                    }
+                }
+            }
+        }
+    }
+
+    private func generateRibbonPaths(
+        from resolvedCells: [ResolvedCell],
+        ribbonWidth: Double,
+        spacing: Double
+    ) -> (fills: [CGPath], outlines: [CGPath]) {
+        var records: [RibbonRecord] = []
+        for rc in resolvedCells {
+            for arm in rc.motifArms {
+                let off = offsetArm(arm, distance: ribbonWidth)
+                records.append(RibbonRecord(
+                    posOuterA: off.positive.outerA,
+                    posInner:  off.positive.inner,
+                    posOuterB: off.positive.outerB,
+                    negOuterB: off.negative.outerB,
+                    negInner:  off.negative.inner,
+                    negOuterA: off.negative.outerA,
+                    cellID: rc.cell.id
+                ))
+            }
+        }
+
+        ribbonJoinPass(&records, spacing: spacing, ribbonWidth: ribbonWidth)
+
+        var fills: [CGPath] = []
+        var outlines: [CGPath] = []
+        for r in records {
+            let fill = CGMutablePath()
+            fill.move(to: CGPoint(r.posOuterA))
+            fill.addLine(to: CGPoint(r.posInner))
+            fill.addLine(to: CGPoint(r.posOuterB))
+            fill.addLine(to: CGPoint(r.negOuterB))
+            fill.addLine(to: CGPoint(r.negInner))
+            fill.addLine(to: CGPoint(r.negOuterA))
+            fill.closeSubpath()
+            fills.append(fill)
+
+            let posEdge = CGMutablePath()
+            posEdge.move(to: CGPoint(r.posOuterA))
+            posEdge.addLine(to: CGPoint(r.posInner))
+            posEdge.addLine(to: CGPoint(r.posOuterB))
+            outlines.append(posEdge)
+
+            let negEdge = CGMutablePath()
+            negEdge.move(to: CGPoint(r.negOuterA))
+            negEdge.addLine(to: CGPoint(r.negInner))
+            negEdge.addLine(to: CGPoint(r.negOuterB))
+            outlines.append(negEdge)
+        }
+        return (fills, outlines)
+    }
+
+    // MARK: - Private helpers
 
     private let defaultGapWidth = 4.0
 

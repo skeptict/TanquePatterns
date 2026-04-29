@@ -37,6 +37,28 @@ struct TileCanvas: View {
                                 ctx.fill(Path(path), with: .color(theme.fill))
                             }
                         }
+                        if vm.state.ribbonSpec.showBgFill {
+                            let bgColor = resolvedTileBgFillColor(vm)
+                            for path in output.gridPaths {
+                                ctx.fill(Path(path), with: .color(bgColor))
+                            }
+                        }
+                        if vm.state.ribbonSpec.showRibbonFill {
+                            let rColor: Color
+                            switch vm.state.ribbonSpec.ribbonColor {
+                            case .motif:         rColor = theme.motif
+                            case .theme, .custom: rColor = theme.brass
+                            }
+                            for path in output.ribbonPaths {
+                                ctx.fill(Path(path), with: .color(rColor))
+                            }
+                            if vm.state.ribbonSpec.showOutline {
+                                let olw = CGFloat(vm.state.ribbonSpec.outlineWidth)
+                                for path in output.ribbonOutlinePaths {
+                                    ctx.stroke(Path(path), with: .color(rColor), lineWidth: olw)
+                                }
+                            }
+                        }
                         if vm.state.layerConfig.showGuideGrid {
                             for path in output.gridPaths {
                                 ctx.stroke(Path(path), with: .color(theme.guide), lineWidth: 0.8)
@@ -77,6 +99,19 @@ struct TileCanvas: View {
                 }
             }
             .background(vm.activeTheme.canvasBg)
+        }
+    }
+
+    private func resolvedTileBgFillColor(_ vm: PatternViewModel) -> Color {
+        let theme = vm.activeTheme
+        switch vm.state.ribbonSpec.bgFillColor {
+        case .dark:  return theme.isPaper
+            ? Color(hex: "#c8b898")
+            : Color(hex: "#1e1a14")
+        case .light: return theme.isPaper
+            ? Color(hex: "#f0e8d0").opacity(0.60)
+            : Color(hex: "#e8dfc4").opacity(0.85)
+        case .theme: return theme.brass.opacity(0.18)
         }
     }
 }

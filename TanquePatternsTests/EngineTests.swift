@@ -180,13 +180,41 @@ import Foundation
     let svgSpec = SVGExportSpec(
         includeConstructionLines: false, includeGridLines: false, includeBands: false,
         backgroundColor: "#0a0b0d", motifColor: "#e6e2d9", constructionColor: "#c9a058",
-        gridColor: "#ffffff", motifOpacity: 0.9, lineWeight: 1.5
+        gridColor: "#ffffff", motifOpacity: 0.9, lineWeight: 1.5,
+        includeRibbonFill: false, includeRibbonOutlines: false,
+        ribbonColor: "#c9a058", ribbonOutlineWidth: 1.5
     )
     let svg = SVGExporter().export(output: output, spec: svgSpec)
     #expect(svg.hasPrefix("<svg "))
     #expect(svg.hasSuffix("</svg>"))
     #expect(svg.contains("<path d="))
     #expect(svg.count > 500)
+}
+
+// 14. Ribbon paths present when ribbonWidth > 0
+// 3×2 hex: 6 visible cells × 6 arms = 36 fill paths, 72 outline paths (2 per arm)
+@Test func ribbonPathsGeneratedWhenEnabled() {
+    let spec = GridSpec(family: .hexagonal, columns: 3, rows: 2,
+                        spacing: 80, cellScale: 0.96, contactT: 0.28)
+    let cells = GridGenerator().generate(spec: spec)
+    let resolved = MotifRecipeResolver().resolve(cells: cells, spec: spec)
+    let output = PatternRenderer().render(cells: resolved, spec: spec,
+                                          weaveMode: .flat, bandOffset: 0, bandCount: 0,
+                                          ribbonWidth: 5.0)
+    #expect(output.ribbonPaths.count == 36)
+    #expect(output.ribbonOutlinePaths.count == 72)
+}
+
+// 15. Ribbon paths empty when ribbonWidth == 0 (default)
+@Test func ribbonPathsEmptyWhenDisabled() {
+    let spec = GridSpec(family: .hexagonal, columns: 3, rows: 2,
+                        spacing: 80, cellScale: 0.96, contactT: 0.28)
+    let cells = GridGenerator().generate(spec: spec)
+    let resolved = MotifRecipeResolver().resolve(cells: cells, spec: spec)
+    let output = PatternRenderer().render(cells: resolved, spec: spec,
+                                          weaveMode: .flat, bandOffset: 0, bandCount: 0)
+    #expect(output.ribbonPaths.isEmpty)
+    #expect(output.ribbonOutlinePaths.isEmpty)
 }
 
 // 13. Renderer excludes bleed cells from path output

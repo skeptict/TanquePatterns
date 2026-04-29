@@ -8,6 +8,7 @@ struct PatternDocumentState: Codable {
     var weaveMode: WeaveMode
     var tileGap: Double
     var lastMode: PatternMode
+    var ribbonSpec: RibbonSpec
 
     static var `default`: PatternDocumentState {
         PatternDocumentState(
@@ -19,9 +20,64 @@ struct PatternDocumentState: Codable {
             bandConfig: BandConfig(showBands: false, bandOffset: 8, bandCount: 1),
             weaveMode: .flat,
             tileGap: 1.0,
-            lastMode: .pattern
+            lastMode: .pattern,
+            ribbonSpec: RibbonSpec.default
         )
     }
+
+    // Custom decoder so existing saved docs without ribbonSpec still load.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        gridSpec      = try c.decode(GridSpecState.self,   forKey: .gridSpec)
+        displayConfig = try c.decode(DisplayConfig.self,   forKey: .displayConfig)
+        layerConfig   = try c.decode(LayerConfig.self,     forKey: .layerConfig)
+        bandConfig    = try c.decode(BandConfig.self,      forKey: .bandConfig)
+        weaveMode     = try c.decode(WeaveMode.self,       forKey: .weaveMode)
+        tileGap       = try c.decode(Double.self,          forKey: .tileGap)
+        lastMode      = try c.decode(PatternMode.self,     forKey: .lastMode)
+        ribbonSpec    = try c.decodeIfPresent(RibbonSpec.self, forKey: .ribbonSpec) ?? .default
+    }
+
+    init(gridSpec: GridSpecState, displayConfig: DisplayConfig, layerConfig: LayerConfig,
+         bandConfig: BandConfig, weaveMode: WeaveMode, tileGap: Double,
+         lastMode: PatternMode, ribbonSpec: RibbonSpec) {
+        self.gridSpec      = gridSpec
+        self.displayConfig = displayConfig
+        self.layerConfig   = layerConfig
+        self.bandConfig    = bandConfig
+        self.weaveMode     = weaveMode
+        self.tileGap       = tileGap
+        self.lastMode      = lastMode
+        self.ribbonSpec    = ribbonSpec
+    }
+}
+
+struct RibbonSpec: Codable {
+    var showRibbonFill: Bool
+    var ribbonWidth: Double
+    var ribbonColor: RibbonColor
+    var outlineWidth: Double
+    var showOutline: Bool
+    var bgFillColor: BgFillColor
+    var showBgFill: Bool
+
+    static var `default`: RibbonSpec {
+        RibbonSpec(showRibbonFill: false, ribbonWidth: 7.0, ribbonColor: .theme,
+                   outlineWidth: 1.5, showOutline: true,
+                   bgFillColor: .dark, showBgFill: false)
+    }
+}
+
+enum RibbonColor: String, Codable, CaseIterable {
+    case theme
+    case motif
+    case custom
+}
+
+enum BgFillColor: String, Codable, CaseIterable {
+    case dark
+    case light
+    case theme
 }
 
 struct GridSpecState: Codable {

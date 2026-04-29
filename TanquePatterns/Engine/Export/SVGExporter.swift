@@ -11,6 +11,10 @@ struct SVGExportSpec {
     let gridColor: String
     let motifOpacity: Double
     let lineWeight: Double
+    let includeRibbonFill: Bool
+    let includeRibbonOutlines: Bool
+    let ribbonColor: String
+    let ribbonOutlineWidth: Double
 }
 
 struct SVGExporter {
@@ -25,35 +29,82 @@ struct SVGExporter {
         svg += "\n     viewBox=\"0 0 \(fmt(W)) \(fmt(H))\">"
         svg += "\n  <rect width=\"100%\" height=\"100%\" fill=\"\(spec.backgroundColor)\"/>"
         svg += "\n  <g transform=\"translate(\(fmt(tx)),\(fmt(ty)))\">"
+        svg += buildPatternContent(output: output, spec: spec)
+        svg += "\n  </g>\n</svg>"
+        return svg
+    }
+
+    func exportTile(output: RenderOutput, spec: SVGExportSpec, tileGap: Double) -> String {
+        let baseRect = output.boundingRect
+        let W = baseRect.width
+        let H = baseRect.height
+        let stepX = W * CGFloat(tileGap)
+        let stepY = H * CGFloat(tileGap)
+        let totalW = W + 2 * stepX
+        let totalH = H + 2 * stepY
+        let content = buildPatternContent(output: output, spec: spec)
+
+        var svg = "<svg xmlns=\"http://www.w3.org/2000/svg\""
+        svg += "\n     width=\"\(fmt(totalW))\" height=\"\(fmt(totalH))\""
+        svg += "\n     viewBox=\"0 0 \(fmt(totalW)) \(fmt(totalH))\">"
+        svg += "\n  <rect width=\"100%\" height=\"100%\" fill=\"\(spec.backgroundColor)\"/>"
+
+        for row in -1...1 {
+            for col in -1...1 {
+                let dx = CGFloat(1 + col) * stepX - baseRect.minX
+                let dy = CGFloat(1 + row) * stepY - baseRect.minY
+                svg += "\n  <g transform=\"translate(\(fmt(dx)),\(fmt(dy)))\">"
+                svg += content
+                svg += "\n  </g>"
+            }
+        }
+
+        svg += "\n</svg>"
+        return svg
+    }
+
+    private func buildPatternContent(output: RenderOutput, spec: SVGExportSpec) -> String {
+        var content = ""
+
+        if spec.includeRibbonFill {
+            content += pathGroup(paths: output.ribbonPaths,
+                                 stroke: "none", opacity: 1.0,
+                                 strokeWidth: 0, fill: spec.ribbonColor)
+        }
+
+        if spec.includeRibbonOutlines {
+            content += pathGroup(paths: output.ribbonOutlinePaths,
+                                 stroke: spec.ribbonColor, opacity: 1.0,
+                                 strokeWidth: spec.ribbonOutlineWidth, fill: "none")
+        }
 
         if spec.includeGridLines {
-            svg += pathGroup(paths: output.gridPaths,
-                             stroke: spec.gridColor, opacity: 0.06,
-                             strokeWidth: 0.8, fill: "none")
+            content += pathGroup(paths: output.gridPaths,
+                                 stroke: spec.gridColor, opacity: 0.06,
+                                 strokeWidth: 0.8, fill: "none")
         }
 
         if spec.includeConstructionLines {
-            svg += pathGroup(paths: output.constructionPaths,
-                             stroke: spec.constructionColor, opacity: 0.45,
-                             strokeWidth: 0.45, fill: "none")
+            content += pathGroup(paths: output.constructionPaths,
+                                 stroke: spec.constructionColor, opacity: 0.45,
+                                 strokeWidth: 0.45, fill: "none")
         }
 
-        svg += pathGroup(paths: output.motifPaths,
-                         stroke: spec.motifColor,
-                         opacity: spec.motifOpacity,
-                         strokeWidth: spec.lineWeight,
-                         fill: "none")
+        content += pathGroup(paths: output.motifPaths,
+                             stroke: spec.motifColor,
+                             opacity: spec.motifOpacity,
+                             strokeWidth: spec.lineWeight,
+                             fill: "none")
 
         if spec.includeBands {
-            svg += pathGroup(paths: output.bandPaths,
-                             stroke: spec.motifColor,
-                             opacity: spec.motifOpacity * 0.4,
-                             strokeWidth: spec.lineWeight * 0.55,
-                             fill: "none")
+            content += pathGroup(paths: output.bandPaths,
+                                 stroke: spec.motifColor,
+                                 opacity: spec.motifOpacity * 0.4,
+                                 strokeWidth: spec.lineWeight * 0.55,
+                                 fill: "none")
         }
 
-        svg += "\n  </g>\n</svg>"
-        return svg
+        return content
     }
 
     private func pathGroup(paths: [CGPath], stroke: String, opacity: Double,

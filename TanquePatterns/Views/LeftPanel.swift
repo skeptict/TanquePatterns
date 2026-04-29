@@ -161,6 +161,47 @@ struct LeftPanel: View {
                 accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
             )
             PanelDivider()
+            SectionLabel("Ribbon")
+            PanelToggle(
+                label: "Ribbon fill",
+                checked: vm.state.ribbonSpec.showRibbonFill,
+                dotColor: TP.brass
+            ) { vm.state.ribbonSpec.showRibbonFill = $0 }
+            if vm.state.ribbonSpec.showRibbonFill {
+                PanelSlider(
+                    label: "Ribbon width",
+                    value: Binding(
+                        get: { vm.state.ribbonSpec.ribbonWidth },
+                        set: { vm.state.ribbonSpec.ribbonWidth = $0 }
+                    ),
+                    range: 2...20, step: 0.5,
+                    display: { String(format: "%.1fpx", $0) },
+                    accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
+                )
+                PanelToggle(
+                    label: "Outline edges",
+                    checked: vm.state.ribbonSpec.showOutline,
+                    dotColor: TP.brass
+                ) { vm.state.ribbonSpec.showOutline = $0 }
+                if vm.state.ribbonSpec.showOutline {
+                    PanelSlider(
+                        label: "Outline width",
+                        value: Binding(
+                            get: { vm.state.ribbonSpec.outlineWidth },
+                            set: { vm.state.ribbonSpec.outlineWidth = $0 }
+                        ),
+                        range: 0.5...4.0, step: 0.1,
+                        display: { String(format: "%.1fpx", $0) },
+                        accentColor: vm.activeTheme.brass, surfaceColor: vm.panelBg
+                    )
+                }
+                PanelToggle(
+                    label: "BG fill",
+                    checked: vm.state.ribbonSpec.showBgFill,
+                    dotColor: TP.brass
+                ) { vm.state.ribbonSpec.showBgFill = $0 }
+            }
+            PanelDivider()
             SectionLabel("Weave")
             PanelToggle(
                 label: "Interlace weave",

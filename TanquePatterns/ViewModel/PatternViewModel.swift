@@ -78,7 +78,9 @@ final class PatternViewModel: ObservableObject {
                 weaveMode: currentState.weaveMode,
                 bandOffset: currentState.bandConfig.bandOffset,
                 bandCount: currentState.bandConfig.showBands
-                    ? currentState.bandConfig.bandCount : 0
+                    ? currentState.bandConfig.bandCount : 0,
+                ribbonWidth: currentState.ribbonSpec.showRibbonFill
+                    ? currentState.ribbonSpec.ribbonWidth : 0
             )
             guard !Task.isCancelled else { return }
             self.resolvedCells = resolved.filter { !$0.cell.isBleed }
@@ -200,10 +202,24 @@ final class PatternViewModel: ObservableObject {
             constructionColor: theme.constructionHex,
             gridColor: theme.isPaper ? "#000000" : "#ffffff",
             motifOpacity: 0.90,
-            lineWeight: state.displayConfig.lineWeight
+            lineWeight: state.displayConfig.lineWeight,
+            includeRibbonFill: state.ribbonSpec.showRibbonFill,
+            includeRibbonOutlines: state.ribbonSpec.showRibbonFill && state.ribbonSpec.showOutline,
+            ribbonColor: ribbonColorHex(theme: theme),
+            ribbonOutlineWidth: state.ribbonSpec.outlineWidth
         )
-        let svgString = SVGExporter().export(output: output, spec: svgSpec)
+        let svgString = mode == .tile
+            ? SVGExporter().exportTile(output: output, spec: svgSpec, tileGap: state.tileGap)
+            : SVGExporter().export(output: output, spec: svgSpec)
         try? svgString.data(using: .utf8)?.write(to: url)
+    }
+
+    private func ribbonColorHex(theme: PatternTheme) -> String {
+        switch state.ribbonSpec.ribbonColor {
+        case .theme:  return "#c9a058"
+        case .motif:  return theme.motifHex
+        case .custom: return "#c9a058"
+        }
     }
 
     func export(to url: URL, format: ExportFormat, scale: Double) async {

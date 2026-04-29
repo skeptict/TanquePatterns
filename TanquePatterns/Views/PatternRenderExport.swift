@@ -24,6 +24,38 @@ struct PatternRenderExport: View {
                     }
                 }
 
+                if vm.state.ribbonSpec.showBgFill {
+                    let bgColor: Color
+                    switch vm.state.ribbonSpec.bgFillColor {
+                    case .dark:  bgColor = theme.isPaper
+                        ? Color(hex: "#c8b898").opacity(0.35)
+                        : Color(hex: "#1e1a14").opacity(1.0)
+                    case .light: bgColor = theme.isPaper
+                        ? Color(hex: "#f0e8d0").opacity(0.60)
+                        : Color(hex: "#e8dfc4").opacity(0.85)
+                    case .theme: bgColor = theme.brass.opacity(0.18)
+                    }
+                    for path in output.gridPaths {
+                        ctx.fill(Path(path), with: .color(bgColor))
+                    }
+                }
+                if vm.state.ribbonSpec.showRibbonFill {
+                    let rColor: Color
+                    switch vm.state.ribbonSpec.ribbonColor {
+                    case .theme, .custom: rColor = theme.brass
+                    case .motif:          rColor = theme.motif
+                    }
+                    for path in output.ribbonPaths {
+                        ctx.fill(Path(path), with: .color(rColor))
+                    }
+                    if vm.state.ribbonSpec.showOutline {
+                        let olw = CGFloat(vm.state.ribbonSpec.outlineWidth) * CGFloat(exportScale)
+                        for path in output.ribbonOutlinePaths {
+                            ctx.stroke(Path(path), with: .color(rColor), lineWidth: olw)
+                        }
+                    }
+                }
+
                 if vm.state.layerConfig.showGuideGrid {
                     for path in output.gridPaths {
                         ctx.stroke(Path(path), with: .color(theme.guide), lineWidth: 0.8)
